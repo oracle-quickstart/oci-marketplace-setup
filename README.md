@@ -13,7 +13,7 @@ This repo is under active development.  Building open source software is a commu
 
 This Quick Start uses [OCI Resource Manager](https://docs.cloud.oracle.com/iaas/Content/ResourceManager/Concepts/resourcemanager.htm) to make deployment easy, sign up for an [OCI account](https://cloud.oracle.com/en_US/tryit) if you don't have one, and just click the button below:
 
-[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/oracle-quickstart/oci-quickstart-template/archive/master.zip)
+[![Deploy to Oracle Cloud](https://oci-resourcemanager-plugin.plugins.oci.oraclecloud.com/latest/deploy-to-oracle-cloud.svg)](https://cloud.oracle.com/resourcemanager/stacks/create?region=home&zipUrl=https://github.com/oracle-quickstart/oci-marketplace-setup/archive/main.zip)
 
 After logging into the console you'll be taken through the same steps described
 in the [Deploy](#deploy) section below.
@@ -21,83 +21,7 @@ in the [Deploy](#deploy) section below.
 
 Note, if you use this template to create another repo you'll need to change the link for the button to point at your repo.
 
-## Local Development
 
-First off we'll need to do some pre deploy setup.  That's all detailed [here](https://github.com/oracle/oci-quickstart-prerequisites).
-
-Note, the instructions below build a `.zip` file from you local copy for use in ORM.
-If you want to not use ORM and deploy with the terraform CLI you need to rename
-`provider.tf.cli -> provider.tf`. This is because authentication works slightly
-differently in ORM vs the CLI. This file is ignored by the build process below.
-
-Make sure you have terraform v0.14+ cli installed and accessible from your terminal.
-
-### Build
-
-Simply `build` your package and follow the [Resource Manager instructions](https://docs.cloud.oracle.com/en-us/iaas/Content/ResourceManager/Tasks/managingstacksandjobs.htm#console) for how to create a stack.  Prior to building the Stack, you may want to modify some parts of the deployment detailed below.
-
-In order to `build` the zip file with the latest changes you made to this code, you can simply go to [build-orm](./build-orm) folder and use terraform to generate a new zip file:
-
-At first time, you are required to initialize the terraform modules used by the template with  `terraform init` command:
-
-```bash
-$ terraform init
-
-Initializing the backend...
-
-Initializing provider plugins...
-- Finding latest version of hashicorp/archive...
-- Installing hashicorp/archive v2.1.0...
-- Installed hashicorp/archive v2.1.0 (signed by HashiCorp)
-
-Terraform has created a lock file .terraform.lock.hcl to record the provider
-selections it made above. Include this file in your version control repository
-so that Terraform can guarantee to make the same selections by default when
-you run "terraform init" in the future.
-
-Terraform has been successfully initialized!
-
-You may now begin working with Terraform. Try running "terraform plan" to see
-any changes that are required for your infrastructure. All Terraform commands
-should now work.
-
-If you ever set or change modules or backend configuration for Terraform,
-rerun this command to reinitialize your working directory. If you forget, other
-commands will detect it and remind you to do so if necessary.
-```
-
-Once terraform is initialized, just run `terraform apply` to generate ORM zip file.
-
-```bash
-$ terraform apply
-
-data.archive_file.generate_zip: Refreshing state...
-
-Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
-```
-
-This command will package the content of `simple` folder into a zip and will store it in the `build-orm\dist` folder. You can check the content of the file by running `unzip -l dist/orm.zip`:
-
-```bash
-$ unzip -l dist/orm.zip
-Archive:  dist/orm.zip
-  Length      Date    Time    Name
----------  ---------- -----   ----
-     1140  01-01-2049 00:00   compute.tf
-      680  01-01-2049 00:00   data_sources.tf
-     1632  01-01-2049 00:00   image_subscription.tf
-     1359  01-01-2049 00:00   locals.tf
-    13548  01-01-2049 00:00   schema.yaml
-     2001  01-01-2049 00:00   network.tf
-     2478  01-01-2049 00:00   nsg.tf
-      830  01-01-2049 00:00   oci_images.tf
-     1092  01-01-2049 00:00   outputs.tf
-       44  01-01-2049 00:00   scripts/example.sh
-     4848  01-01-2049 00:00   variables.tf
-      311  01-01-2049 00:00   versions.tf
----------                     -------
-    29963                     12 files
-```
 
 ### Deploy
 
@@ -174,77 +98,3 @@ Archive:  dist/orm.zip
 |Apply                       | `terraform apply` is used to apply the changes required to reach the desired state of the configuration described by the template.|
 |Destroy                     | `terraform destroy` is used to destroy the Terraform-managed infrastructure.|
 
-## Customize for Marketplace
-
-In case you wanted to make changes to this template to use a Marketplace image rather than a platform image or custom image, you need to make the following changes.
-
-1. Configure Marketplace listing variables on [`variables.tf`](./variables.tf).
-
-|      VARIABLES             |           DESCRIPTION                                                 |
-|----------------------------|-----------------------------------------------------------------------|
-|mp_subscription_enabled     | Enable subscription to Marketplace.|
-|mp_listing_id               | Marketplace App Catalog Listing OCID.|
-|mp_listing_resource_id      | Marketplace Listing Image OCID.|
-|mp_listing_resource_version | Marketplace Listing Package/Resource Version (Reference value)|
-
-2. Modify [`compute.tf`](./compute.tf) set `source_details` to refer to `local.compute_image_id` rather than `platform_image_id`. The `local.compute_image_id` holds the logic to either refer to the marketplace image or a custom image, based on the `mp_subscription_enabled` flag.
-
-```hcl
-resource "oci_core_instance" "simple-vm" {
-  availability_domain = local.availability_domain
-  compartment_id      = var.compute_compartment_ocid
-  display_name        = var.vm_display_name
-  shape               = var.vm_compute_shape
-
-  dynamic "shape_config" {
-    for_each = local.is_flex_shape
-      content {
-        ocpus = shape_config.value
-      }
-  }
-
-
-  create_vnic_details {
-    subnet_id              = local.use_existing_network ? var.subnet_id : oci_core_subnet.simple_subnet[0].id
-    display_name           = var.subnet_display_name
-    assign_public_ip       = local.is_public_subnet
-    hostname_label         = var.hostname_label
-    skip_source_dest_check = false
-    nsg_ids                = [oci_core_network_security_group.simple_nsg.id]
-  }
-
-  source_details {
-    source_type = "image"
-    #use a marketplace image or custom image:
-    source_id   = local.compute_image_id
-  }
-
-```
-2. Modify [`oci_images.tf`](./oci_images.tf) set `marketplace_source_images` map variable to refer to the marketplace images your Stack will launch.
-
-```hcl
-
-variable "marketplace_source_images" {
-  type = map(object({
-    ocid = string
-    is_pricing_associated = bool
-    compatible_shapes = list(string)
-  }))
-  default = {
-    main_mktpl_image = {
-      ocid = "ocid1.image.oc1..<unique_id>"
-      is_pricing_associated = true
-      compatible_shapes = []
-    }
-    #Remove comment and add as many marketplace images that your stack references be replicated to other realms
-    #supporting_image = {
-    #  ocid = "ocid1.image.oc1..<unique_id>"
-    #  is_pricing_associated = false
-    #  compatible_shapes = ["VM.Standard2.2", "VM.Standard.E2.1.Micro"]
-    #}
-  }
-}
-
-```
-
-2. Run your tests using the Terraform CLI or build a new package and deploy on ORM.
