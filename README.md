@@ -11,7 +11,7 @@ This oci-marketplace-setup repo contains a template to create Marketplace publis
 
 After clicking the deploy button above you will be presented with 3 screens using 'Next' to navigate:
 
-1. Stack Information - Click "Accept Oracle terms", and can optionally change the name of the stack.
+1. Stack Information - Click "Accept Oracle terms", and you can optionally change the name of the stack.
 2. Variables - You can leave the defaults or uncheck any resources you do not wish to create.
 3. Review - Click "Create" to automatically create the resources because "Run Apply" is checked.
 
