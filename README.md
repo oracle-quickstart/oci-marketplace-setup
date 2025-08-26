@@ -1,4 +1,4 @@
-# oci-quickstart-template
+# oci-marketplace-setup
 
 The [Oracle Cloud Infrastructure (OCI) Quick Start](https://github.com/oracle-quickstart?q=oci-quickstart) organization is a collection of examples that allow Oracle Cloud Infrastructure users to get a quick start deploying advanced infrastructure on OCI.
 
@@ -12,6 +12,6 @@ This oci-marketplace-setup repo contains a template to create Marketplace publis
 After clicking the deploy button above you will be presented with 3 screens using 'Next' to navigate:
 
 1. Stack Information - you can optionally change the name of the stack.
-2. Variables - you can leave the defaults or uncheck any resources you do not with to create.
+2. Variables - you can leave the defaults or uncheck any resources you do not wish to create.
 3. Review - Check "Run Apply" to automatically create resources and click 'Next'
 
