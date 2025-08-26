@@ -11,11 +11,11 @@ This oci-marketplace-setup repo contains a template to create Marketplace publis
 
 After clicking the deploy button above you will be presented with 3 screens using 'Next' to navigate:
 
-1. Stack Information - You can optionally change the name of the stack.
+1. Stack Information - Click "Accept Oracle terms", and can optionally change the name of the stack.
 2. Variables - You can leave the defaults or uncheck any resources you do not wish to create.
-3. Review - Check "Run Apply" to automatically create resources and click 'Next'
+3. Review - Click "Create" to automatically create the resources because "Run Apply" is checked.
 
-This will create the following resources in the root compartment and default domain:
+After about 30 sec this will create the following resources in the root compartment and default domain:
 
 - A service policy to allow Marketplace to read image and stack artifacts to be published.
 - A user group and policy to grant admin permissions to Marketplace resources.
